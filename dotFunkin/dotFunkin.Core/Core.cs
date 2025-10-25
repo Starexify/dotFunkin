@@ -28,16 +28,16 @@ public class Core : Game
     public static readonly bool IsDesktop = OperatingSystem.IsMacOS() || OperatingSystem.IsLinux() || OperatingSystem.IsWindows();
 
     public static GraphicsDeviceManager Graphics { get; private set; }
-    public static new GraphicsDevice GraphicsDevice { get; private set; }
+    public new static GraphicsDevice GraphicsDevice { get; private set; }
     public static SpriteBatch SpriteBatch { get; private set; }
-    public static new ContentManager Content { get; private set; }
+    public new static ContentManager Content { get; private set; }
 
     /// <summary>
     ///     Initializes a new instance of the game. Configures platform-specific settings,
     ///     initializes services like settings and leaderboard managers, and sets up the
     ///     screen manager for screen transitions.
     /// </summary>
-    public Core(string title, int width, int height, bool fullScreen)
+    protected Core(string title, int width, int height, bool fullScreen, bool vsync)
     {
         if (Instance != null) throw new InvalidOperationException($"Only a single Main instance can be created");
         Instance = this;
@@ -47,6 +47,8 @@ public class Core : Game
         Graphics.PreferredBackBufferWidth = width;
         Graphics.PreferredBackBufferHeight = height;
         Graphics.IsFullScreen = fullScreen;
+        Graphics.SynchronizeWithVerticalRetrace = vsync;
+        // IsFixedTimeStep = false;
         
         Graphics.ApplyChanges();
         
@@ -62,7 +64,7 @@ public class Core : Game
         IsMouseVisible = true;
 
         // Configure screen orientations.
-        Graphics.SupportedOrientations = DisplayOrientation.LandscapeLeft | DisplayOrientation.LandscapeRight;
+        //Graphics.SupportedOrientations = DisplayOrientation.LandscapeLeft | DisplayOrientation.LandscapeRight;
     }
 
     /// <summary>
@@ -85,21 +87,15 @@ public class Core : Game
             TransitionState();
         }
 
-        if (_sActiveState != null)
-        {
-            _sActiveState.Update(gameTime);
-        }
-        
+        _sActiveState?.Update(gameTime);
+
         base.Update(gameTime);
     }
 
     protected override void Draw(GameTime gameTime)
     {
-        if (_sActiveState != null)
-        {
-            _sActiveState.Draw(gameTime);
-        }
-        
+        _sActiveState?.Draw(gameTime);
+
         base.Draw(gameTime);
     }
     
@@ -113,11 +109,7 @@ public class Core : Game
     
     private static void TransitionState()
     {
-        // If there is an active state, dispose of it.
-        if (_sActiveState != null)
-        {
-            _sActiveState.Dispose();
-        }
+        _sActiveState?.Dispose();
 
         // Force the garbage collector to collect to ensure memory is cleared.
         GC.Collect();
@@ -127,13 +119,7 @@ public class Core : Game
 
         // Null out the next state value so it does not trigger a change over and over.
         _sNextState = null;
-
-        // If the active state now is not null, initialize it.
-        // Remember, just like with Game, the Initialize call also calls the
-        // State.LoadContent
-        if (_sActiveState != null)
-        {
-            _sActiveState.Initialize();
-        }
+        
+        _sActiveState?.Initialize();
     }
 }
