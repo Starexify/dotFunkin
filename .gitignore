@@ -1,0 +1,8 @@
+# Ignore IDE-specific files
+.idea
+
+# Ignore all bin and obj folders
+**/bin/
+**/obj/Debug/
+
+dotFunkin/dotFunkin.Core/Content/obj
